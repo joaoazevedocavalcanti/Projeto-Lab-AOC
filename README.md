@@ -6,22 +6,27 @@ Processador RISC-V de 32 bits com pipeline de 5 estágios implementado em System
 
 ## Instruções suportadas
 
-| # | Instrução | Tipo | Opcode  | Status |
-|---|-----------|------|---------|:------:|
-| 1 | `ADD`     | R    | 0110011 | ✅ |
-| 2 | `SUB`     | R    | 0110011 | ✅ |
-| 3 | `OR`      | R    | 0110011 | ✅ |
-| 4 | `AND`     | R    | 0110011 | ✅ |
-| 5 | `SLT`     | R    | 0110011 | ✅ |
-| 6 | `LW`      | I    | 0000011 | ✅ |
-| 7 | `SW`      | S    | 0100011 | ✅ |
-| 8 | `BEQ`     | B    | 1100011 | ✅ |
+| #  | Instrução | Tipo | Opcode  | Status |
+|----|-----------|------|---------|:------:|
+| 1  | `ADD`     | R    | 0110011 | ✅ |
+| 2  | `SUB`     | R    | 0110011 | ✅ |
+| 3  | `OR`      | R    | 0110011 | ✅ |
+| 4  | `AND`     | R    | 0110011 | ✅ |
+| 5  | `SLT`     | R    | 0110011 | ✅ |
+| 6  | `LW`      | I    | 0000011 | ✅ |
+| 7  | `SW`      | S    | 0100011 | ✅ |
+| 8  | `BEQ`     | B    | 1100011 | ✅ |
+| 9  | `XOR`     | R    | 0110011 | ✅ |
+| 10 | `SLL`     | R    | 0110011 | ✅ |
+| 11 | `SRL`     | R    | 0110011 | ✅ |
+| 12 | `SRA`     | R    | 0110011 | ✅ |
+| 13 | `SLTU`    | R    | 0110011 | ✅ |
 
 ### Resumo de cobertura do ISA RV32I
 
 | Categoria          | Total ISA | Implementadas | Faltando |
 |--------------------|:---------:|:-------------:|:--------:|
-| R-type             | 10        | 5             | 5        |
+| R-type             | 10        | 10            | 0        |
 | I-type aritmético  | 9         | 0             | 9        |
 | I-type load        | 5         | 1 (LW)        | 4        |
 | S-type             | 3         | 1 (SW)        | 2        |
@@ -36,11 +41,11 @@ Processador RISC-V de 32 bits com pipeline de 5 estágios implementado em System
 
 | # | Instrução | Tipo | Opcode  | Status |
 |---|-----------|------|---------|:------:|
-| 1 | `XOR`     | R    | 0110011 | ❌ |
-| 2 | `SLL`     | R    | 0110011 | ❌ |
-| 3 | `SRL`     | R    | 0110011 | ❌ |
-| 4 | `SRA`     | R    | 0110011 | ❌ |
-| 5 | `SLTU`    | R    | 0110011 | ❌ |
+| 1 | `XOR`     | R    | 0110011 | ✅ |
+| 2 | `SLL`     | R    | 0110011 | ✅ |
+| 3 | `SRL`     | R    | 0110011 | ✅ |
+| 4 | `SRA`     | R    | 0110011 | ✅ |
+| 5 | `SLTU`    | R    | 0110011 | ✅ |
 
 #### Aritmética, lógica e deslocamentos com imediatos (I-type)
 
