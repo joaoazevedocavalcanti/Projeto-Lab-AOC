@@ -1,5 +1,5 @@
 -- ============================================================
--- data.mif — gerado por: python assembler.py --dump
+-- data.mif ï¿½ gerado por: python assembler.py --dump
 --
 -- 0x000..0x01F : area do usuario  (byte 0x000..0x07C)
 -- 0x078..0x07F : saves x1-x8   (byte 0x1E0..0x1FC, escritos em runtime)
@@ -12,7 +12,11 @@ DATA_RADIX = HEX;
 CONTENT
 BEGIN
 
-[000..0FF] : 00000000;  -- zeros por padrao
+000 : 0000A5F0;
+001 : 00005A0F;
+002 : 00000400;
+
+[003..0FF] : 00000000;  -- zeros por padrao
 
 080 : 00000410;  -- UART TX/status addr      -> x15
 081 : 00000200;  -- tx_busy mask (bit 9)     -> x17
