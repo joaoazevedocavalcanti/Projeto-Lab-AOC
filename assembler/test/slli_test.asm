@@ -1,0 +1,14 @@
+addi x1,x0,15
+addi x2,x0,-1
+addi x10,x0,1024
+add x0,x0,x0
+add x0,x0,x0
+slli x3,x1,0
+slli x4,x1,1
+slli x5,x1,4
+slli x6,x1,28
+slli x7,x1,31
+slli x8,x2,16
+add x0,x0,x0
+add x0,x0,x0
+sw x5,8(x10)

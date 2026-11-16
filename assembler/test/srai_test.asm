@@ -1,0 +1,14 @@
+addi x1,x0,-2048
+addi x2,x0,2032
+addi x10,x0,1024
+add x0,x0,x0
+add x0,x0,x0
+srai x3,x1,0
+srai x4,x1,1
+srai x5,x1,4
+srai x6,x1,8
+srai x7,x2,4
+srai x8,x1,16
+add x0,x0,x0
+add x0,x0,x0
+sw x8,8(x10)

@@ -1,0 +1,14 @@
+addi x1,x0,1365
+addi x2,x0,-1
+addi x10,x0,1024
+add x0,x0,x0
+add x0,x0,x0
+xori x3,x1,1023
+xori x4,x1,-1
+xori x5,x2,-1
+xori x6,x1,0
+xori x7,x2,1365
+xori x8,x1,-2047
+add x0,x0,x0
+add x0,x0,x0
+sw x3,8(x10)

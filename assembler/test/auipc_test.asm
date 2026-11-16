@@ -1,0 +1,12 @@
+addi x10,x0,1024
+auipc x1,0
+auipc x2,1
+auipc x3,-1
+auipc x4,74565
+auipc x5,0
+auipc x6,16
+auipc x7,524287
+auipc x8,-524287
+add x0,x0,x0
+add x0,x0,x0
+sw x6,8(x10)
