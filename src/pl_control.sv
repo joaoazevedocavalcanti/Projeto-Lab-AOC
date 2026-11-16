@@ -60,9 +60,9 @@ module pl_control (
                 ALUOp    = 2'b10;
             end
             I_TYPE: begin //Novas instruções para o tipo I 
-                AluSrc   = 1'b1;
-                memtoReg = 1'b0;
-                regWrite = 1'b1;
+                ALUSrc   = 1'b1;
+                MemtoReg = 1'b0;
+                RegWrite = 1'b1;
                 ALUOp    = 2'b11;
             end
             LOAD: begin
