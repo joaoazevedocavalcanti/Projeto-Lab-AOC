@@ -1,0 +1,16 @@
+addi x6,x0,-1
+addi x10,x0,1024
+lui x1,1
+lui x2,74565
+lui x3,-1
+lui x4,524287
+lui x5,-524287
+lui x7,74565
+add x0,x0,x0
+add x0,x0,x0
+lui x6,0
+lui x8,16
+addi x7,x7,1656
+add x0,x0,x0
+add x0,x0,x0
+sw x8,8(x10)

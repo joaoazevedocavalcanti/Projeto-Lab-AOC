@@ -1,0 +1,28 @@
+DEPTH = 256;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
+BEGIN
+
+000 : 00000001;  -- 1
+001 : 00000002;  -- 2
+002 : FFFFFFFF;  -- maior sem sinal (-1 com sinal)
+003 : 7FFFFFFF;  -- maior positivo com sinal
+004 : 80000000;  -- 2^31 sem sinal (mais negativo com sinal)
+005 : 00000000;
+006 : 00000400;  -- base MMIO (para escrever no LEDR)
+
+[007..07F] : 00000000;
+
+080 : 00000410;
+081 : 00000200;
+082 : 00000004;
+083 : 00000400;
+084 : 000001FF;
+085 : 000001E0;
+086 : 00000200;
+
+[087..0FF] : 00000000;
+
+END;

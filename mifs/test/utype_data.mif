@@ -1,0 +1,22 @@
+DEPTH = 256;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
+BEGIN
+
+-- Teste I-type: operandos vem do proprio codigo (addi), nada pre-carregado
+
+[000..07F] : 00000000;
+
+080 : 00000410;
+081 : 00000200;
+082 : 00000004;
+083 : 00000400;
+084 : 000001FF;
+085 : 000001E0;
+086 : 00000200;
+
+[087..0FF] : 00000000;
+
+END;

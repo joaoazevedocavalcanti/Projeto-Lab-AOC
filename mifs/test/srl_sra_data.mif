@@ -1,0 +1,29 @@
+DEPTH = 256;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
+BEGIN
+
+000 : 800000F0;  -- A (negativo)
+001 : 700000F0;  -- B (positivo)
+002 : 00000001;  -- shamt 1
+003 : 00000004;  -- shamt 4
+004 : 0000001F;  -- shamt 31
+005 : 00000020;  -- shamt 32 (deve virar 0)
+006 : 00000400;  -- base MMIO (para escrever no LEDR)
+007 : FFFFFFE4;  -- bits altos lixo, 5 bits baixos = 4
+
+[008..07F] : 00000000;
+
+080 : 00000410;
+081 : 00000200;
+082 : 00000004;
+083 : 00000400;
+084 : 000001FF;
+085 : 000001E0;
+086 : 00000200;
+
+[087..0FF] : 00000000;
+
+END;

@@ -1,0 +1,17 @@
+lw x1,0(x0)
+lw x2,4(x0)
+lw x6,8(x0)
+lw x10,24(x0)
+add x0,x0,x0
+add x0,x0,x0
+xor x3,x1,x2
+xor x4,x1,x1
+xor x5,x1,x0
+xor x6,x6,x1
+xor x7,x2,x1
+xor x8,x3,x2
+add x0,x0,x0
+add x0,x0,x0
+sw x3,12(x0)
+sw x8,16(x0)
+sw x3,8(x10)
