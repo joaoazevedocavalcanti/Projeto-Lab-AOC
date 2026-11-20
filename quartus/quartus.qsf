@@ -55,29 +55,6 @@ set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
-set_global_assignment -name SOURCE_FILE quartus.qsf
-set_global_assignment -name VERILOG_FILE pll_10mhz.v
-set_global_assignment -name SYSTEMVERILOG_FILE pl_uart.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_top_no_pll.sv
-set_global_assignment -name SDC_FILE pl_top_no_pll.sdc
-set_global_assignment -name SYSTEMVERILOG_FILE pl_top.sv
-set_global_assignment -name SDC_FILE pl_top.sdc
-set_global_assignment -name SYSTEMVERILOG_FILE pl_sign_ext.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_regfile.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_pipe_pkg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_mmio.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_imem.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_hazard.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_forward.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_dmem.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_datapath.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_cpu.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_control.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_alu_ctrl.sv
-set_global_assignment -name SYSTEMVERILOG_FILE pl_alu.sv
-set_global_assignment -name MIF_FILE instruction.mif
-set_global_assignment -name MIF_FILE data.mif
-set_global_assignment -name TEXT_FILE add_to_qsf.txt
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 
@@ -136,4 +113,28 @@ set_location_assignment PIN_M21 -to KEY[1]
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name SYSTEMVERILOG_FILE pl_branch_unit.sv
+set_global_assignment -name SOURCE_FILE quartus.qsf
+set_global_assignment -name VERILOG_FILE pll_10mhz.v
+set_global_assignment -name SYSTEMVERILOG_FILE pl_uart.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_top_no_pll.sv
+set_global_assignment -name SDC_FILE pl_top_no_pll.sdc
+set_global_assignment -name SYSTEMVERILOG_FILE pl_top.sv
+set_global_assignment -name SDC_FILE pl_top.sdc
+set_global_assignment -name SYSTEMVERILOG_FILE pl_sign_ext.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_regfile.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_pipe_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_mmio.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_imem.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_hazard.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_forward.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_dmem.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_datapath.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_cpu.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_control.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_alu_ctrl.sv
+set_global_assignment -name SYSTEMVERILOG_FILE pl_alu.sv
+set_global_assignment -name MIF_FILE instruction.mif
+set_global_assignment -name MIF_FILE data.mif
+set_global_assignment -name TEXT_FILE add_to_qsf.txt
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

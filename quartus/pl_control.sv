@@ -37,6 +37,19 @@
 //   RegWrite  |   1    |  1  |  1
 //   ALUOp     |   11   |  00 |  00    00=ADD
 //   (demais instrucoes: ALUSrcA = 00)
+//
+// Jumps (Etapa 03):
+//   J-type  (1101111): jal   -> rd = PC + 4 ; PC = PC + imm
+//   I-type  (1100111): jalr  -> rd = PC + 4 ; PC = (rs1 + imm) & ~1
+//
+//   Sinal     | jal | jalr
+//   ----------|-----|------
+//   Jump      |  1  |  1     1 = sempre desvia e grava PC+4 em rd
+//   Jalr      |  0  |  1     1 = destino vem da ALU (rs1 + imm)
+//   ALUSrc    |  0  |  1
+//   RegWrite  |  1  |  1
+//   ALUOp     |  00 |  00    00=ADD (jalr: rs1 + imm)
+//   (demais instrucoes: Jump = 0, Jalr = 0)
 // =============================================================================
 
 `timescale 1ns / 1ps
@@ -50,7 +63,9 @@ module pl_control (
     output logic       MemRead,
     output logic       MemWrite,
     output logic       Branch,
-    output logic [1:0] ALUOp
+    output logic [1:0] ALUOp,
+    output logic       Jump,      // jal/jalr: sempre desvia, rd = PC + 4
+    output logic       Jalr       // jalr: destino = (rs1 + imm) & ~1
 );
 
     localparam R_TYPE = 7'b0110011;
@@ -60,6 +75,8 @@ module pl_control (
     localparam BRANCH = 7'b1100011;
     localparam LUI    = 7'b0110111;
     localparam AUIPC  = 7'b0010111;
+    localparam JAL    = 7'b1101111;
+    localparam JALR   = 7'b1100111;
 
     always_comb begin
         ALUSrc   = 1'b0;
@@ -70,6 +87,8 @@ module pl_control (
         MemWrite = 1'b0;
         Branch   = 1'b0;
         ALUOp    = 2'b00;
+        Jump     = 1'b0;
+        Jalr     = 1'b0;
 
         case (Opcode)
             R_TYPE: begin
@@ -112,6 +131,20 @@ module pl_control (
                 ALUSrcA  = 2'b01;     // entrada A = PC da instrucao
                 MemtoReg = 1'b0;
                 RegWrite = 1'b1;
+                ALUOp    = 2'b00;     // ADD
+            end
+            JAL: begin                // rd = PC + 4 ; PC = PC + imm
+                Jump     = 1'b1;
+                RegWrite = 1'b1;
+                MemtoReg = 1'b0;
+                ALUOp    = 2'b00;
+            end
+            JALR: begin               // rd = PC + 4 ; PC = (rs1 + imm) & ~1
+                Jump     = 1'b1;
+                Jalr     = 1'b1;
+                ALUSrc   = 1'b1;      // ALU: rs1 + imm
+                RegWrite = 1'b1;
+                MemtoReg = 1'b0;
                 ALUOp    = 2'b00;     // ADD
             end
             default: ; // sinais permanecem em zero (seguro)

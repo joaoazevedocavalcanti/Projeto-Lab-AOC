@@ -22,6 +22,34 @@
 //   Branch    |   0    |  0 |  0 |  1
 //   ALUOp[1]  |   1    |  0 |  0 |  0
 //   ALUOp[0]  |   0    |  0 |  0 |  1
+//
+// Instrucoes adicionadas (Etapas 01 e 02):
+//   R-type  (0110011): xor, sll, srl, sra, sltu (decodificadas no pl_alu_ctrl)
+//   I-type  (0010011): addi, andi, ori, slti, slli, srli, srai, xori
+//   U-type  (0110111): lui    -> rd = 0  + imm
+//   U-type  (0010111): auipc  -> rd = PC + imm
+//
+//   Sinal     | I-type | lui | auipc
+//   ----------|--------|-----|-------
+//   ALUSrc    |   1    |  1  |  1
+//   ALUSrcA   |   00   |  10 |  01    00=rs1, 01=PC, 10=zero
+//   MemtoReg  |   0    |  0  |  0
+//   RegWrite  |   1    |  1  |  1
+//   ALUOp     |   11   |  00 |  00    00=ADD
+//   (demais instrucoes: ALUSrcA = 00)
+//
+// Jumps (Etapa 03):
+//   J-type  (1101111): jal   -> rd = PC + 4 ; PC = PC + imm
+//   I-type  (1100111): jalr  -> rd = PC + 4 ; PC = (rs1 + imm) & ~1
+//
+//   Sinal     | jal | jalr
+//   ----------|-----|------
+//   Jump      |  1  |  1     1 = sempre desvia e grava PC+4 em rd
+//   Jalr      |  0  |  1     1 = destino vem da ALU (rs1 + imm)
+//   ALUSrc    |  0  |  1
+//   RegWrite  |  1  |  1
+//   ALUOp     |  00 |  00    00=ADD (jalr: rs1 + imm)
+//   (demais instrucoes: Jump = 0, Jalr = 0)
 // =============================================================================
 
 `timescale 1ns / 1ps
@@ -29,12 +57,15 @@
 module pl_control (
     input  logic [6:0] Opcode,
     output logic       ALUSrc,
+    output logic [1:0] ALUSrcA,   // entrada A da ALU: 00=rs1, 01=PC, 10=zero
     output logic       MemtoReg,
     output logic       RegWrite,
     output logic       MemRead,
     output logic       MemWrite,
     output logic       Branch,
-    output logic [1:0] ALUOp
+    output logic [1:0] ALUOp,
+    output logic       Jump,      // jal/jalr: sempre desvia, rd = PC + 4
+    output logic       Jalr       // jalr: destino = (rs1 + imm) & ~1
 );
 
     localparam R_TYPE = 7'b0110011;
@@ -42,15 +73,22 @@ module pl_control (
     localparam LOAD   = 7'b0000011;
     localparam STORE  = 7'b0100011;
     localparam BRANCH = 7'b1100011;
+    localparam LUI    = 7'b0110111;
+    localparam AUIPC  = 7'b0010111;
+    localparam JAL    = 7'b1101111;
+    localparam JALR   = 7'b1100111;
 
     always_comb begin
         ALUSrc   = 1'b0;
+        ALUSrcA  = 2'b00;
         MemtoReg = 1'b0;
         RegWrite = 1'b0;
         MemRead  = 1'b0;
         MemWrite = 1'b0;
         Branch   = 1'b0;
         ALUOp    = 2'b00;
+        Jump     = 1'b0;
+        Jalr     = 1'b0;
 
         case (Opcode)
             R_TYPE: begin
@@ -80,6 +118,34 @@ module pl_control (
             BRANCH: begin
                 Branch   = 1'b1;
                 ALUOp    = 2'b01;
+            end
+            LUI: begin                // rd = 0 + {imm[31:12], 12'b0}
+                ALUSrc   = 1'b1;
+                ALUSrcA  = 2'b10;     // entrada A = zero
+                MemtoReg = 1'b0;
+                RegWrite = 1'b1;
+                ALUOp    = 2'b00;     // ADD
+            end
+            AUIPC: begin              // rd = PC + {imm[31:12], 12'b0}
+                ALUSrc   = 1'b1;
+                ALUSrcA  = 2'b01;     // entrada A = PC da instrucao
+                MemtoReg = 1'b0;
+                RegWrite = 1'b1;
+                ALUOp    = 2'b00;     // ADD
+            end
+            JAL: begin                // rd = PC + 4 ; PC = PC + imm
+                Jump     = 1'b1;
+                RegWrite = 1'b1;
+                MemtoReg = 1'b0;
+                ALUOp    = 2'b00;
+            end
+            JALR: begin               // rd = PC + 4 ; PC = (rs1 + imm) & ~1
+                Jump     = 1'b1;
+                Jalr     = 1'b1;
+                ALUSrc   = 1'b1;      // ALU: rs1 + imm
+                RegWrite = 1'b1;
+                MemtoReg = 1'b0;
+                ALUOp    = 2'b00;     // ADD
             end
             default: ; // sinais permanecem em zero (seguro)
         endcase

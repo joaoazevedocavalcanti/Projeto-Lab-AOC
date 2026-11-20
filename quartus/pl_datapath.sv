@@ -14,6 +14,18 @@
 //   RAW data       : forwarding EX/MEM -> EX e MEM/WB -> EX (pl_forward)
 //   Branch taken   : flush de IF e ID (2 NOPs) na resolucao em EX
 //
+// Desvios (Etapa 03): a condicao (BEQ/BNE/BLT/BGE/BLTU/BGEU) e decidida pelo
+// pl_branch_unit a partir do funct3 e dos operandos com forwarding.
+//
+// Loads/stores de byte e meia palavra (Etapa 03), no estagio MEM:
+//   pl_load_unit  : recorta byte/meia palavra e estende (LB/LH/LBU/LHU/LW)
+//   pl_store_unit : troca so os bytes escritos na palavra antiga (SB/SH/SW)
+//
+// Jumps (Etapa 03), resolvidos no estagio EX como um desvio sempre tomado:
+//   jal  : PC = PC + imm             ; rd = PC + 4
+//   jalr : PC = (rs1 + imm) & ~1     ; rd = PC + 4   (rs1 + imm calculado na ALU)
+//   O valor PC + 4 substitui o resultado da ALU no registrador EX/MEM.
+//
 // Entrada A da ALU (estagio EX), U-type:
 //   ALUSrcA = 00 -> rs1 (com forwarding)   -- demais instrucoes
 //   ALUSrcA = 01 -> PC da instrucao        -- auipc
@@ -42,6 +54,8 @@ module pl_datapath (
     input  logic        MemWrite,
     input  logic        Branch,
     input  logic [1:0]  ALUOp,
+    input  logic        Jump,         // Etapa 03: jal/jalr
+    input  logic        Jalr,         // Etapa 03: jalr
 
     // Codigo de operacao da ALU (pl_alu_ctrl, usa campos do estagio EX)
     input  logic [3:0]  ALU_CC,
@@ -98,6 +112,9 @@ module pl_datapath (
     logic [31:0] alu_srca;          // U-type: saida do mux ALUSrcA
     logic [31:0] alu_result;
     logic        zero;
+    logic        br_taken;          // Etapa 03: condicao do desvio (pl_branch_unit)
+    logic [31:0] pc_target;         // Etapa 03: destino do PC (desvio, jal ou jalr)
+    logic [31:0] ex_result;         // Etapa 03: resultado do EX (ALU ou PC + 4)
 
     // WB
     logic [31:0] wb_data;
@@ -105,6 +122,9 @@ module pl_datapath (
     // MEM
     logic        mmio_sel;
     logic [31:0] dmem_rd, mmio_rd, mem_read_data;
+    logic [31:0] mem_raw_rd;        // Etapa 03: palavra lida (antes do load unit)
+    logic [31:0] store_word;        // Etapa 03: palavra a gravar (store unit)
+    logic [3:0]  store_be;          // Etapa 03: bytes alterados (depuracao)
 
     // =========================================================================
     // IF -- Busca de instrucao
@@ -113,7 +133,7 @@ module pl_datapath (
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n)      pc_reg <= 32'b0;
-        else if (pc_src) pc_reg <= branch_target;   // branch tem prioridade
+        else if (pc_src) pc_reg <= pc_target;       // branch/jump tem prioridade
         else if (!stall) pc_reg <= pc_plus4;
         // else stall: PC mantido
     end
@@ -194,6 +214,8 @@ module pl_datapath (
             id_ex.mem_write  <= 1'b0;
             id_ex.alu_op     <= 2'b00;
             id_ex.branch     <= 1'b0;
+            id_ex.jump       <= 1'b0;           // Etapa 03
+            id_ex.jalr       <= 1'b0;           // Etapa 03
             id_ex.pc         <= 32'b0;
             id_ex.rd1        <= 32'b0;
             id_ex.rd2        <= 32'b0;
@@ -212,6 +234,8 @@ module pl_datapath (
             id_ex.mem_write  <= 1'b0;
             id_ex.alu_op     <= 2'b00;
             id_ex.branch     <= 1'b0;
+            id_ex.jump       <= 1'b0;           // Etapa 03
+            id_ex.jalr       <= 1'b0;           // Etapa 03
             id_ex.pc         <= 32'b0;
             id_ex.rd1        <= 32'b0;
             id_ex.rd2        <= 32'b0;
@@ -230,6 +254,8 @@ module pl_datapath (
             id_ex.mem_write  <= MemWrite;
             id_ex.alu_op     <= ALUOp;
             id_ex.branch     <= Branch;
+            id_ex.jump       <= Jump;           // Etapa 03
+            id_ex.jalr       <= Jalr;           // Etapa 03
             id_ex.pc         <= if_id.pc;
             id_ex.rd1        <= rd1;
             id_ex.rd2        <= rd2;
@@ -299,9 +325,24 @@ module pl_datapath (
         .Zero      (zero)
     );
 
+    // Etapa 03: decisao do desvio pelo funct3 (substitui o uso do Zero da ALU)
+    pl_branch_unit branch_unit (
+        .Funct3 (id_ex.funct3),
+        .SrcA   (fwd_srca),
+        .SrcB   (fwd_srcb),
+        .Taken  (br_taken)
+    );
+
     // Branch resolvido no estagio EX (flush 2 instrucoes se taken)
-    assign branch_target = id_ex.pc + id_ex.imm_ext;
-    assign pc_src        = id_ex.branch && zero;
+    assign branch_target = id_ex.pc + id_ex.imm_ext;   // beq..bgeu e jal
+
+    // Etapa 03: jumps sao desvios sempre tomados
+    assign pc_target = id_ex.jalr ? {alu_result[31:1], 1'b0}   // jalr: (rs1+imm) & ~1
+                                  : branch_target;              // branch e jal
+    assign pc_src    = (id_ex.branch && br_taken) || id_ex.jump;
+
+    // Etapa 03: jal/jalr gravam PC + 4 em rd (no lugar do resultado da ALU)
+    assign ex_result = id_ex.jump ? (id_ex.pc + 32'd4) : alu_result;
 
     // =========================================================================
     // Registrador EX/MEM
@@ -321,7 +362,7 @@ module pl_datapath (
             ex_mem.reg_write   <= id_ex.reg_write;
             ex_mem.mem_read    <= id_ex.mem_read;
             ex_mem.mem_write   <= id_ex.mem_write;
-            ex_mem.alu_result  <= alu_result;
+            ex_mem.alu_result  <= ex_result;        // Etapa 03: antes alu_result
             ex_mem.write_data  <= fwd_srcb;   // rs2 adiantado (para SW/MMIO)
             ex_mem.rd          <= id_ex.rd;
             ex_mem.funct3      <= id_ex.funct3;
@@ -333,11 +374,21 @@ module pl_datapath (
     // =========================================================================
     assign mmio_sel = ex_mem.alu_result[10];
 
+    // Etapa 03: monta a palavra do SB/SH a partir da palavra antiga (dmem_rd)
+    pl_store_unit store_unit (
+        .Funct3    (ex_mem.funct3),
+        .AddrLow   (ex_mem.alu_result[1:0]),
+        .StoreData (ex_mem.write_data),
+        .OldWord   (dmem_rd),
+        .NewWord   (store_word),
+        .ByteEn    (store_be)
+    );
+
     pl_dmem dmem (
         .clk       (clk),
         .MemWrite  (ex_mem.mem_write & ~mmio_sel),
         .addr      (ex_mem.alu_result[9:2]),
-        .WriteData (ex_mem.write_data),
+        .WriteData (store_word),                 // antes: ex_mem.write_data
         .ReadData  (dmem_rd)
     );
 
@@ -357,12 +408,20 @@ module pl_datapath (
         .UART_RXD  (UART_RXD)
     );
 
-    assign mem_read_data = mmio_sel ? mmio_rd : dmem_rd;
+    assign mem_raw_rd = mmio_sel ? mmio_rd : dmem_rd;   // antes: mem_read_data
+
+    // Etapa 03: recorta e estende o dado do LB/LH/LBU/LHU (LW passa direto)
+    pl_load_unit load_unit (
+        .Funct3   (ex_mem.funct3),
+        .AddrLow  (ex_mem.alu_result[1:0]),
+        .ReadWord (mem_raw_rd),
+        .LoadData (mem_read_data)
+    );
 
     // Saidas de observabilidade para o testbench
     assign mem_wr_en   = ex_mem.mem_write & ~mmio_sel;
     assign mem_wr_addr = ex_mem.alu_result[9:2];
-    assign mem_wr_data = ex_mem.write_data;
+    assign mem_wr_data = store_word;                    // antes: ex_mem.write_data
 
     // =========================================================================
     // Registrador MEM/WB

@@ -21,12 +21,15 @@ package pl_pipe_pkg;
     typedef struct packed {
         // sinais de controle propagados para os estagios seguintes
         logic        alu_src;
+        logic [1:0]  alu_src_a; // entrada A da ALU: 00=rs1, 01=PC (auipc), 10=zero (lui)
         logic        mem_to_reg;
         logic        reg_write;
         logic        mem_read;
         logic        mem_write;
         logic [1:0]  alu_op;
         logic        branch;
+        logic        jump;      // jal/jalr: desvio incondicional, rd = PC + 4
+        logic        jalr;      // jalr: destino = (rs1 + imm) & ~1
         // dados
         logic [31:0] pc;
         logic [31:0] rd1;       // saida 1 do banco de registradores
